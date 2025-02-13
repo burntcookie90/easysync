@@ -37,9 +37,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -73,7 +79,8 @@ class AdvancedSyncSettingsActivity : ComponentActivity() {
                         paths = listOf(),
                         errorMsg = null
                     ),
-                    toggleExclusionHandler = viewModel::toggleExclusion
+                    toggleExclusionHandler = viewModel::toggleExclusion,
+                    onUp = { finish() }
                 )
             }
 
@@ -81,39 +88,57 @@ class AdvancedSyncSettingsActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Main(
     uiState: AdvancedSyncSettingsUiState,
-    toggleExclusionHandler: (relativePath: String, activated: Boolean) -> Unit
+    toggleExclusionHandler: (relativePath: String, activated: Boolean) -> Unit,
+    onUp: () -> Unit = { }
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Title(text = stringResource(R.string.advanced_sync_settings_activity_title))
-        Spacer(modifier = Modifier.height(16.dp))
-        StdText(text = stringResource(R.string.advanced_sync_settings_activity_help))
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (!uiState.errorMsg.isNullOrEmpty()) {
-            StatusTitle(
-                title = uiState.errorMsg,
-                statusColor = Color.Red,
-                statusIcon = Icons.Default.Warning
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Title(text = stringResource(R.string.advanced_sync_settings_activity_title))
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = onUp,
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                    }
+                }
             )
         }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            StdText(text = stringResource(R.string.advanced_sync_settings_activity_help))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        if (uiState.paths.isEmpty()) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.outline)
-        } else {
-            uiState.paths.forEach { syncPath ->
-                SwitchSetting(
-                    description = syncPath.relativePath,
-                    checked = syncPath.enabled
-                ) { newState ->
-                    toggleExclusionHandler(syncPath.relativePath, newState)
+            if (!uiState.errorMsg.isNullOrEmpty()) {
+                StatusTitle(
+                    title = uiState.errorMsg,
+                    statusColor = Color.Red,
+                    statusIcon = Icons.Default.Warning
+                )
+            }
+
+            if (uiState.paths.isEmpty()) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.outline)
+            } else {
+                uiState.paths.forEach { syncPath ->
+                    SwitchSetting(
+                        description = syncPath.relativePath,
+                        checked = syncPath.enabled
+                    ) { newState ->
+                        toggleExclusionHandler(syncPath.relativePath, newState)
+                    }
                 }
             }
         }

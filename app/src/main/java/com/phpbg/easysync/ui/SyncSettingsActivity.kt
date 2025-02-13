@@ -38,7 +38,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -75,12 +81,14 @@ class SyncSettingsActivity : ComponentActivity() {
                     conflictStrategy = settings.value?.conflictStrategy
                         ?: ConflictStrategy.IGNORE,
                     conflictStrategyHandler = viewModel::conflictStrategyHandler,
+                    onUp = { finish() }
                 )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Main(
     syncOnCellular: Boolean,
@@ -88,54 +96,71 @@ private fun Main(
     syncOnBattery: Boolean,
     syncOnBatteryHandler: (Boolean) -> Unit,
     conflictStrategy: ConflictStrategy,
-    conflictStrategyHandler: (String) -> Unit
+    conflictStrategyHandler: (String) -> Unit,
+    onUp: () -> Unit = { },
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        val mContext = LocalContext.current
-        Title(text = stringResource(R.string.sync_settings_title))
-        Spacer(modifier = Modifier.height(16.dp))
-        SwitchSetting(
-            title = stringResource(R.string.sync_settings_on_cellular_title),
-            description = stringResource(R.string.sync_settings_on_cellular_desc),
-            checked = syncOnCellular,
-            onCheckedChange = syncOnCellularHandler
-        )
-        SwitchSetting(
-            title = stringResource(R.string.sync_settings_on_battery_title),
-            description = stringResource(R.string.sync_settings_on_battery_desc),
-            checked = syncOnBattery,
-            onCheckedChange = syncOnBatteryHandler
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        StdText(stringResource(R.string.sync_settings_conflicts_title))
-        Description(stringResource(R.string.sync_settings_conflicts_desc))
-        val options = mapOf(
-            ConflictStrategy.KEEP_LOCAL.name to stringResource(R.string.sync_settings_conflicts_strategy_keep_local),
-            ConflictStrategy.IGNORE.name to stringResource(R.string.sync_settings_conflicts_strategy_ignore),
-            ConflictStrategy.KEEP_REMOTE.name to stringResource(R.string.sync_settings_conflicts_strategy_keep_remote)
-        )
-        RadioGroup(options, selected = conflictStrategy.name, onClick = conflictStrategyHandler)
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (conflictStrategy.name == ConflictStrategy.IGNORE.name) {
-            StdText(stringResource(R.string.sync_settings_advanced))
-            Description(stringResource(R.string.sync_settings_conflicts_not_recommended))
-        } else {
-            StatusTitleClickable(
-                title = null,
-                actionTitle = stringResource(R.string.sync_settings_advanced),
-                statusColor = Color.Gray,
-                statusIcon = Icons.Default.Settings,
-                clickHandler = {
-                    val myIntent = Intent(mContext, AdvancedSyncSettingsActivity::class.java)
-                    mContext.startActivity(myIntent)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Title(text = stringResource(R.string.sync_settings_title))
                 },
+                navigationIcon = {
+                    IconButton(
+                        onClick = onUp,
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                    }
+                }
             )
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            val mContext = LocalContext.current
+            SwitchSetting(
+                title = stringResource(R.string.sync_settings_on_cellular_title),
+                description = stringResource(R.string.sync_settings_on_cellular_desc),
+                checked = syncOnCellular,
+                onCheckedChange = syncOnCellularHandler
+            )
+            SwitchSetting(
+                title = stringResource(R.string.sync_settings_on_battery_title),
+                description = stringResource(R.string.sync_settings_on_battery_desc),
+                checked = syncOnBattery,
+                onCheckedChange = syncOnBatteryHandler
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            StdText(stringResource(R.string.sync_settings_conflicts_title))
+            Description(stringResource(R.string.sync_settings_conflicts_desc))
+            val options = mapOf(
+                ConflictStrategy.KEEP_LOCAL.name to stringResource(R.string.sync_settings_conflicts_strategy_keep_local),
+                ConflictStrategy.IGNORE.name to stringResource(R.string.sync_settings_conflicts_strategy_ignore),
+                ConflictStrategy.KEEP_REMOTE.name to stringResource(R.string.sync_settings_conflicts_strategy_keep_remote)
+            )
+            RadioGroup(options, selected = conflictStrategy.name, onClick = conflictStrategyHandler)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (conflictStrategy.name == ConflictStrategy.IGNORE.name) {
+                StdText(stringResource(R.string.sync_settings_advanced))
+                Description(stringResource(R.string.sync_settings_conflicts_not_recommended))
+            } else {
+                StatusTitleClickable(
+                    title = null,
+                    actionTitle = stringResource(R.string.sync_settings_advanced),
+                    statusColor = Color.Gray,
+                    statusIcon = Icons.Default.Settings,
+                    clickHandler = {
+                        val myIntent = Intent(mContext, AdvancedSyncSettingsActivity::class.java)
+                        mContext.startActivity(myIntent)
+                    },
+                )
+            }
         }
     }
 }

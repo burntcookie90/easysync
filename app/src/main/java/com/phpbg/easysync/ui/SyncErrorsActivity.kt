@@ -34,11 +34,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,43 +61,63 @@ import java.time.Instant
 class SyncErrorsActivity : ComponentActivity() {
 
     private val viewModel: SyncErrorsViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ThemeSurface {
                 val errors = viewModel.errors.observeAsState()
-                SynchronizationErrors(errors.value)
+                SynchronizationErrors(errors.value, onUp = { finish() })
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SynchronizationErrors(errors: List<Error>?, modifier: Modifier = Modifier) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+fun SynchronizationErrors(
+    errors: List<Error>?,
+    modifier: Modifier = Modifier,
+    onUp: () -> Unit = {},
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Title(stringResource(R.string.sync_errors_activity_title)) },
+                navigationIcon = {
+                    IconButton(
+                        onClick = onUp,
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                    }
+                }
+            )
+        }
     ) {
-        if (errors.isNullOrEmpty()) {
-            item {
-                Title(text = stringResource(R.string.sync_errors_activity_title))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.sync_errors_activity_no_error),
-                    modifier = modifier
-                )
-            }
-        } else {
-            item {
-                Title(text = stringResource(R.string.sync_errors_activity_title))
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            items(errors) { error ->
-                ListItem(
-                    headlineContent = { Text(error.path) },
-                    supportingContent = { Text(error.message) },
-                )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+                .padding(16.dp)
+        ) {
+            if (errors.isNullOrEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.sync_errors_activity_no_error),
+                        modifier = modifier
+                    )
+                }
+            } else {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                items(errors) { error ->
+                    ListItem(
+                        headlineContent = { Text(error.path) },
+                        supportingContent = { Text(error.message) },
+                    )
+                }
             }
         }
     }
