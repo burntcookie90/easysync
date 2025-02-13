@@ -48,13 +48,15 @@ val URIS = (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
         MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
         MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
-        MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
+        MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
     )
 } else {
     arrayOf(
         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+        MediaStore.Files.getContentUri("external")
     )
 })
 
